@@ -2,6 +2,7 @@ version: "3"
 services:
   logstash:
     image: docker.elastic.co/logstash/logstash-oss:6.1.1
+    networks: ["vnet"]
     ports:
     - "9600:9600"
     volumes:
@@ -10,12 +11,28 @@ services:
     command: ["-r"]
   exporter:
     build: .
+    networks: ["vnet"]
     ports:
     - "9304:9304"
     command: ["-logstash.host", "logstash"]
   prometheus:
     image: prom/prometheus
+    networks: ["vnet"]
     ports:
     - "9090:9090"
     volumes:
     - ./docker-compose/prometheus.yml:/etc/prometheus/prometheus.yml
+  grafana:
+    image: grafana/grafana
+    networks: ["vnet"]
+    ports:
+    - "3000:3000"
+    volumes:
+    - ./docker-compose/grafana.ini:/usr/share/grafana/conf/defaults.ini
+    environment:
+    - "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource"
+
+networks:
+  vnet:
+    external:
+      name: vnet
